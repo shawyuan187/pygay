@@ -13,6 +13,8 @@ bg = pygame.Surface((Width, height))
 bg.fill((255, 255, 255))  # 填滿白色
 
 ######################循環偵測######################
+paint = False
+color = (0, 255, 255)
 while True:
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -21,21 +23,7 @@ while True:
         if event.type == pygame.QUIT:
             sys.exit()  # 關閉程式
             # 主要城市
-
+    if paint:
+        pygame.draw.circle(bg, color, (x, y), 10, 0)
     screen.blit(bg, (0, 0))  # 將背景畫到視窗上
-    pygame.display.update()  # 更新畫面
-    ######################繪製圖形######################
-    # circle
-    pygame.draw.circle(screen, (0, 0, 255), (320, 160), 50, 0)
-    # rect
-    pygame.draw.rect(screen, (255, 0, 0), (320, 160, 100, 100), 0)
-    # polygon
-    pygame.draw.polygon(screen, (0, 255, 0), [(320, 160), (220, 260), (420, 260)], 0)
-    # ellipse
-    pygame.draw.ellipse(screen, (255, 255, 0), (220, 160, 200, 100), 0)
-    # arc
-    pygame.draw.arc(screen, (255, 0, 255), (220, 160, 200, 100), 0, 180, 1)
-    # line
-    pygame.draw.line(screen, (0, 0, 0), (220, 160), (420, 260), 2)
-
     pygame.display.update()  # 更新畫面
