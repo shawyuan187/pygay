@@ -67,16 +67,24 @@ for col in range(brick_col):
 ######################顯示文字設定######################
 
 ######################底板設定######################
-
+pad = Brick(0, bg_y - 48, brick_w, brick_h, (255, 255, 255))
 ######################球設定######################
 
 ######################遊戲結束設定######################
 
 ######################主程式######################
 while True:
+    screen.fill((0, 0, 0))  # 清空畫面
+    mos_x, mos_y = pygame.mouse.get_pos()  # 取得滑鼠座標
+    pad.rect.x = mos_x - pad.rect.width // 2  # 更新底板位置
+    if pad.rect.x < 0:
+        pad.rect.x = 0
+    if pad.rect.x > bg_x - pad.rect.width:
+        pad.rect.x = bg_x - pad.rect.width
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()  # 關閉程式\
     for brick in bricks:
         brick.draw(screen)
+    pad.draw(screen)  # 繪製底板
     pygame.display.update()  # 更新畫面
