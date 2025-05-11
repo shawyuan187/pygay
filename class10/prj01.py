@@ -26,7 +26,7 @@ def load_doodle_sprites():
     return: 包含所有精靈的字典\n
     """
     # 載入主要圖片資源
-    img_path = os.path.join("image", "src.png")  # image/src.png
+    img_path = os.path.join("pic", "src.png")  # image/src.png
     source_image = pygame.image.load(
         img_path
     ).convert_alpha()  # 載入圖片並轉換為帶Alpha通道的格式
@@ -39,10 +39,10 @@ def load_doodle_sprites():
         # 彈簧
         "spring_normal": (376, 188, 71, 35),  # 普通彈簧
         # 玩家角色圖片路徑
-        "player_left_jumping": os.path.join("image", "l.png"),  # 左跳躍
-        "player_left_falling": os.path.join("image", "ls.png"),  # 左下落
-        "player_right_jumping": os.path.join("image", "r.png"),  # 右跳躍
-        "player_right_falling": os.path.join("image", "rs.png"),  # 右下落
+        "player_left_jumping": os.path.join("pic", "l.png"),  # 左跳躍
+        "player_left_falling": os.path.join("pic", "ls.png"),  # 左下落
+        "player_right_jumping": os.path.join("pic", "r.png"),  # 右跳躍
+        "player_right_falling": os.path.join("pic", "rs.png"),  # 右下落
     }  # 切割精靈圖片並存入字典
     sprites = {}
     for name, data in sprite_data.items():
@@ -174,6 +174,10 @@ class Player:
                         self.velocity_y = (
                             self.jump_power * 2
                         )  # 給予更強的向上跳躍力（兩倍跳躍力）
+
+                        # 播放彈簧音效
+                        if use_sounds and "spring" in sounds:
+                            sounds["spring"].play()
                         return True
         return False
 
@@ -213,6 +217,10 @@ class Player:
                         self.rect.bottom = platform.rect.top  # 將玩家放在平台上
                         self.velocity_y = self.jump_power  # 給予向上的力量
                         self.on_platform = True
+
+                        # 播放跳躍音效
+                        if use_sounds and "jump" in sounds:
+                            sounds["jump"].play()
                         return True
         return False
 
@@ -300,6 +308,22 @@ class Spring:
 
 ######################初始化設定######################
 pygame.init()  # 初始化 pygame
+
+# 音效初始化與載入（只保留 jump.mp3 和 spring.mp3）
+use_sounds = False
+sounds = {}
+try:
+    pygame.mixer.init()
+    sounds["jump"] = pygame.mixer.Sound(os.path.join("sounds", "jump.mp3"))
+    sounds["spring"] = pygame.mixer.Sound(os.path.join("sounds", "spring.mp3"))
+    for s in sounds.values():
+        s.set_volume(0.5)
+    use_sounds = True
+    print("音效載入成功")
+except Exception as e:
+    print(f"音效載入失敗: {e}")
+    use_sounds = False
+
 FPS = pygame.time.Clock()  # 創建時鐘物件，用於控制遊戲更新速率
 
 ######################遊戲視窗設定######################
@@ -440,6 +464,8 @@ def reset_game():
     """
     global score, game_over, platforms, initial_player_y, highest_score, springs
 
+    # 不再播放 gameover 音效
+
     # 重設玩家位置
     player.rect.x = (bg_x - player_w) // 2
     player.rect.y = bg_y - player_h - 50
@@ -487,7 +513,7 @@ while True:
     FPS.tick(60)  # 限制遊戲更新率為每秒60幀
     screen.fill((255, 255, 255))  # 用白色填充畫面背景
 
-    if not game_over:  # 遊戲進行中
+    if not game_over:
         update_camera()  # 更新相機位置和平台
 
         # 獲取當前按下的按鍵狀態
@@ -511,7 +537,7 @@ while True:
             # 更新最高分數
             if score > highest_score:
                 highest_score = score
-
+            # 不再播放 gameover 音效
     # 事件處理迴圈
     for event in pygame.event.get():
         if event.type == pygame.QUIT:  # 當使用者點擊關閉視窗
