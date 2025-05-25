@@ -513,17 +513,22 @@ while True:
     FPS.tick(60)  # 限制遊戲更新率為每秒60幀
     screen.fill((255, 255, 255))  # 用白色填充畫面背景
 
+    # 處理事件（關閉視窗、遊戲結束時重新開始）
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+        elif event.type == pygame.KEYDOWN and game_over:
+            reset_game()
+
     if not game_over:
         update_camera()  # 更新相機位置和平台
 
-        # 獲取當前按下的按鍵狀態
+        # 處理左右移動控制（支援持續按壓與A/D鍵）
         keys = pygame.key.get_pressed()
-
-        # 處理左右移動控制
-        if keys[pygame.K_LEFT]:  # 當按下左方向鍵
-            player.move(-1, bg_x)  # 向左移動
-        if keys[pygame.K_RIGHT]:  # 當按下右方向鍵
-            player.move(1, bg_x)  # 向右移動
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            player.move(-1, bg_x)
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            player.move(1, bg_x)
 
         # 應用重力效果和處理碰撞
         player.apply_gravity()
@@ -534,38 +539,7 @@ while True:
         # 檢查遊戲結束條件（玩家掉出畫面）
         if player.rect.top > bg_y:
             game_over = True
-            # 更新最高分數
             if score > highest_score:
                 highest_score = score
-            # 不再播放 gameover 音效
-    # 事件處理迴圈
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:  # 當使用者點擊關閉視窗
-            sys.exit()  # 結束程式
-        elif event.type == pygame.KEYDOWN and game_over:  # 遊戲結束時按任意鍵重新開始
-            reset_game()
-
-    # 繪製所有平台
-    for platform in platforms:
-        platform.draw(screen)
-
-    # 繪製所有彈簧
-    for spring in springs:
-        spring.draw(screen)
-
-    player.draw(screen)  # 繪製主角
-
-    # 顯示分數
-    score_text = font.render(f"分數: {score}", True, (0, 0, 0))
-    screen.blit(score_text, (10, 10))
-
-    # 如果遊戲結束，顯示遊戲結束訊息和最高分
-    if game_over:
-        game_over_text = font.render("遊戲結束！按任意鍵重新開始", True, (0, 0, 0))
-        highest_score_text = font.render(f"最高分數: {highest_score}", True, (0, 0, 0))
-        text_rect = game_over_text.get_rect(center=(bg_x / 2, bg_y / 2))
-        score_rect = highest_score_text.get_rect(center=(bg_x / 2, bg_y / 2 + 40))
-        screen.blit(game_over_text, text_rect)
-        screen.blit(highest_score_text, score_rect)
-
-    pygame.display.update()  # 更新畫面顯示
+    else:
+        # 事件處理迴圈（遊戲結束時）

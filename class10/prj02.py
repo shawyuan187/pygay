@@ -24,7 +24,7 @@ def roll_bg(screen, bg_img, roll_y):
 
 ###################### 玩家類別區塊 ######################
 class Player:
-    def __init__(self, x, y, width, height, color, speed=10, sprites=None, burner_img=None):
+0    def __init__(self, x, y, width, height, color, speed=10, sprites=None, burner_img=None):
         """
         初始化玩家太空船
         x, y: 太空船左上角座標
