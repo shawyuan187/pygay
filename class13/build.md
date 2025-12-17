@@ -219,4 +219,44 @@
   - 每幀遍歷 `emy_list`，分別呼叫每台敵機的 `move()` 與 `draw(screen)` 方法。
   - 敵機會自動在畫面底部重生，形成無限下落的效果。
 - 這樣設計可讓敵機持續出現在畫面上，並且分布隨機，為後續碰撞與分數系統做準備。
-1
+
+### 步驟 10: 添加分數和音效系統
+
+-   設計 `ScoreManager` 類別管理分數系統：
+
+    -   初始化函式設定：
+        -   分數變數 `self.score`
+        -   顯示字體 `self.font`
+        -   顯示位置 `self.pos` 與顏色 `self.color`
+    -   方法：
+        -   `add_score(value)`: 增加分數
+        -   `deduct_score(value)`: 減少分數（不低於 0）
+        -   `draw(screen)`: 顯示分數於畫面指定位置
+        -   `reset()`: 重設分數
+    -   於主程式初始化：
+        ```python
+        font = pygame.font.Font("C:/Windows/Fonts/msjh.ttc", 32)
+        ```
+    -   在主程式繪圖階段呼叫 `score_manager.draw(screen)` 顯示分數。
+
+-   設計 `AudioManager` 類別管理音效系統：
+
+    -   初始化函式接收音效物件（如 `hit_sound`）
+    -   方法：
+        -   `play_hit()`: 播放擊中敵機音效
+    -   於主程式初始化：
+        ```python
+            hit_sound = pygame.mixer.Sound("image/hit.mp3")
+        ```
+
+-   整合分數與音效於碰撞管理器：
+
+    -   `CollisionManager` 類別初始化時傳入 `score_manager` 與 `audio_manager`
+    -   當子彈擊中敵機時：
+        -   呼叫 `score_manager.add_score(10)` 增加分數
+        -   呼叫 `audio_manager.play_hit()` 播放音效
+
+-   主程式結構簡化：
+    -   分數與音效管理集中於 manager 類別
+    -   每幀呼叫 `score_manager.draw(screen)` 顯示分數
+    -   撞擊時自動加分與播放音效，主程式邏輯更清晰

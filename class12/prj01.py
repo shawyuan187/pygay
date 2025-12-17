@@ -206,11 +206,16 @@ class Enemy:
 
     def reset(self, bg_x):
         """
-        敵人重生於畫面上方隨機位置，並隨機換一種圖片
+        敵人重生於畫面上方隨機位置，並隨機換一種圖片與重設狀態
+        bg_x: 畫面寬度
         """
-        self.rect.x = random.randint(0, bg_x - self.rect.width)
-        self.rect.y = -self.rect.height
+        # 隨機X座標，確保不會超出畫面
+        self.rect.x = random.randint(0, max(0, bg_x - self.rect.width))
+        # Y座標設為畫面上方外，並可隨機分布於更高處，避免同時出現
+        self.rect.y = -self.rect.height - random.randint(0, bg_y // 2)
+        # 隨機選擇一種敵人圖片
         self.img = random.choice(self.enemy_images) if self.enemy_images else None
+        # 重設爆炸動畫狀態
         self.exploding = False
         self.explode_frame = 0
         self.active = True
@@ -256,6 +261,23 @@ class Enemy:
             missile.active = False
             return True
         return False
+
+
+###################### 敵人群系統區塊（步驟9） ######################
+# 步驟9：實現敵機群系統，讓多台敵機分布於畫面上方外並持續下落
+EMY_NUM = 5  # 敵機數量，可依需求調整
+EMY_W = 60  # 敵機寬度
+EMY_H = 60  # 敵機高度
+EMY_SPEED = 5  # 敵機下落速度
+
+emy_list = []  # 敵機物件列表
+
+# 依序建立多個敵機物件，y座標分布於畫面上方外，避免同時出現
+for i in range(EMY_NUM):
+    emy_x = random.randint(0, bg_x - EMY_W)
+    emy_y = -EMY_H - random.randint(0, bg_y)
+    emy = Enemy(emy_x, emy_y, EMY_W, EMY_H, EMY_SPEED, enemy_images, explode_imgs)
+    emy_list.append(emy)
 
 
 ###################### 初始化設定區塊 ######################
@@ -352,6 +374,14 @@ enemy_speed = 8  # 敵人下落速度
 ENEMY_MAX = 5  # 畫面上同時最多敵人數
 enemies = []  # 敵人列表
 
+# 預先生成 ENEMY_MAX 數量的敵人，並分散在畫面上方不同位置
+for _ in range(ENEMY_MAX):
+    x = random.randint(0, bg_x - enemy_w)
+    y = -enemy_h - random.randint(0, bg_y)
+    enemies.append(
+        Enemy(x, y, enemy_w, enemy_h, enemy_speed, enemy_images, explode_imgs)
+    )
+
 
 def spawn_enemy():
     """
@@ -415,10 +445,9 @@ while True:
     for msl in missiles:
         msl.handle_movement(bg_y)
 
-    # 隨機生成敵人，數量未達上限時才生成
-    if len([e for e in enemies if e.active]) < ENEMY_MAX:
-        if random.random() < 0.03:  # 每幀約3%機率生成一隻
-            enemies.append(spawn_enemy())
+    # 持續生成敵人：若場上敵人數量小於 ENEMY_MAX，則補足
+    while len([e for e in enemies if e.active]) < ENEMY_MAX:
+        enemies.append(spawn_enemy())
 
     # 更新所有敵人狀態
     for enemy in enemies:
@@ -427,16 +456,29 @@ while True:
         for msl in missiles:
             enemy.check_collision(msl)
 
+    # --- 敵機群系統：每幀更新所有敵機 ---
+    for emy in emy_list:
+        emy.move(bg_y, bg_x)
+        # 檢查所有飛彈與敵機碰撞
+        for msl in missiles:
+            emy.check_collision(msl)
+
+    # --- 若敵機被消滅或飛出畫面，立即重生 ---
+    for emy in emy_list:
+        if not emy.active:
+            emy.reset(bg_x)
+
     # 畫出捲動背景
     roll_bg(screen, bg_img, roll_y)
 
-    # 先畫所有飛彈，再畫所有敵人，再畫玩家
+    # 先畫所有飛彈，再畫所有敵機，再畫玩家
     for msl in missiles:
         msl.draw(screen)
-    for enemy in enemies:
-        enemy.draw(screen)
+    for emy in emy_list:
+        emy.draw(screen)
     player.draw(screen)
     player.handle_input(pygame.key.get_pressed(), bg_x, bg_y)
 
     # 更新畫面顯示
+    pygame.display.update()
     pygame.display.update()
